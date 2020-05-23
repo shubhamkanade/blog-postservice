@@ -1,0 +1,29 @@
+version: '3.1'
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: mysql-postservice
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3306:3306"
+
+  sphinx:
+    image: macbre/sphinxsearch:3.0.1
+    ports:
+    - "127.0.0.1:9306:9306" # bind to local interface only!
+    volumes:
+    - ./data:/opt/sphinx/index  # directory where sphinx will store index data
+    - ./sphinx.conf:/opt/sphinx/conf/sphinx.conf  # SphinxSE configuration file
+
+  post:
+    image: gitlab.techverito.com:4567/internal/blog-postservice:${BUILD_NUMBER}
+    container_name: postservice
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+    environment:
+      - DB_HOST=mysql
+      - RACK_ENV=test
